@@ -58,7 +58,7 @@ html {
 /* --- CIENIUTKI "DUCH" SCROLLBAR (3px) --- */
 /* Chrome, Safari, Edge */
 ::-webkit-scrollbar {
-  width: 0px; /* Ta cieniutka szerokość, którą lubisz */
+  width: 1px; /* Ta cieniutka szerokość, którą lubisz */
 }
 
 ::-webkit-scrollbar-track {
@@ -67,7 +67,7 @@ html {
 
 ::-webkit-scrollbar-thumb {
   /* Bardzo subtelna biel (tylko 7% widoczności) */
-  background: rgba(255, 255, 255, 0); 
+  background: rgba(255, 255, 255, 0.137); 
   border-radius: 20px;
 }
 
