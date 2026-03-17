@@ -38,7 +38,7 @@ export default function ContactOverlay({
             position: "fixed",
             inset: 0,
             zIndex: 450,
-            background: "rgba(5, 5, 5, 0.8)", // Przezroczystość 0.8
+            background: "rgba(5, 5, 5, 0.95)", // Przezroczystość 0.8
             backdropFilter: "blur(25px)",
             color: "#e8e4df",
             overflow: "hidden",
