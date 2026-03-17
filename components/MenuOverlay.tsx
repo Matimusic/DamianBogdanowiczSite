@@ -109,11 +109,12 @@ export default function MenuOverlay({ isOpen, onClose, onPortfolioOpen, onContac
           >
             <p style={{ 
               fontFamily: "HelveticaCustom", 
-              fontSize: "6px", 
+              fontSize: "0.8vh", 
               letterSpacing: "0.5", 
               opacity: 0.5, 
               textTransform: "uppercase",
-              color: "#e8e4df"
+              color: "#e8e4df",
+              marginBottom: "0.6vh"
             }}>
               Strona zaprojektowana przez
             </p>
@@ -121,7 +122,7 @@ export default function MenuOverlay({ isOpen, onClose, onPortfolioOpen, onContac
               <img 
                 src="/logos/whiteslopeStudioLogo.png" 
                 alt="Logo" 
-                style={{ height: "16px", opacity: 1 }} 
+                style={{ height: "2vh", opacity: 1 }} 
               />
             </a>
           </motion.div>
