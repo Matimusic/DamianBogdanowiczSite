@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* --- CZCIONKI (FONTS) --- */
 @font-face {
   font-family: 'AppleGaramondItalic';
   src: url('/fonts/AppleGaramond-Italic.ttf') format('truetype');
@@ -24,16 +25,17 @@
 @font-face {
   font-family: 'AppleGaramond';
   src: url('/fonts/AppleGaramond-LightItalic.ttf') format('truetype');
-  
   font-style: italic;
 }
 
+/* --- ZMIENNE (ROOT) --- */
 :root {
   --background: #0a0a0a;
   --foreground: #e8e4df;
   --accent: #8b1a1a;
 }
 
+/* --- RESET & BODY --- */
 * {
   margin: 0;
   padding: 0;
@@ -45,17 +47,42 @@ body {
   color: var(--foreground);
   font-family: 'HelveticaCustom', Arial, sans-serif;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-track { background: #0a0a0a; }
-::-webkit-scrollbar-thumb { background: var(--accent); }
+/* --- CIENIUTKI "DUCH" SCROLLBAR (3px) --- */
+/* Chrome, Safari, Edge */
+::-webkit-scrollbar {
+  width: 0px; /* Ta cieniutka szerokość, którą lubisz */
+}
 
+::-webkit-scrollbar-track {
+  background: transparent; /* Całkowita przezroczystość tła */
+}
+
+::-webkit-scrollbar-thumb {
+  /* Bardzo subtelna biel (tylko 7% widoczności) */
+  background: rgba(255, 255, 255, 0); 
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  /* Lekko mocniejszy po najechaniu (20% widoczności) */
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Firefox Support */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.07) transparent;
+}
+
+/* --- EFEKTY --- */
 .grain {
   position: fixed;
   inset: 0;
@@ -63,6 +90,11 @@ html {
   z-index: 9999;
   opacity: 0.035;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
