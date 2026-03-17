@@ -11,6 +11,11 @@ import AboutMeOverlay from "@/components/AboutMeOverlay";
 import { CLIPS } from "@/data/clips";
 import { blobUrlCache } from "@/data/blobCache";
 import FilmDetailOverlay from "@/components/FilmDetailOverlay";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import AboutMeOverlayMobile from "@/components/AboutMeOverlayMobile"; // Zakładając, że tak nazwałeś plik
+import PortfolioOverlayMobile from "@/components/PortfolioOverlayMobile";
+import ContactOverlayMobile from "@/components/ContactOverlayMobile";
+import FilmDetailOverlayMobile from "@/components/FilmDetailOverlayMobile";
 
 const PRELOAD_BATCH_SIZE = 1;
 const VIDEO_FALLBACK_TIMEOUT_MS = 120000;
@@ -73,6 +78,7 @@ const preloadVideoBuffer = async (src: string) => {
 };
 
 export default function Home() {
+  const isMobile = useIsMobile();
   
   const [menuOpen, setMenuOpen] = useState(false);
   const [portfolioOpen, setPortfolioOpen] = useState(false);
@@ -184,58 +190,125 @@ const scrollTo = (id?: string) => { // Dodaliśmy '?'
 
         
 
-        <PortfolioOverlay
-          isOpen={portfolioOpen}
-          onClose={() => setPortfolioOpen(false)}
-          onAboutOpen={() => {
-            setPortfolioOpen(false);
-            setAboutOpen(true);
-          }}
-          onContactOpen={() => {
-            setPortfolioOpen(false);
-            setContactOpen(true);
-          }}
-        />
-        <ContactOverlay
-          isOpen={contactOpen}
-          onClose={() => setContactOpen(false)}
-          onAboutOpen={() => {
-            setContactOpen(false);
-            setAboutOpen(true);
-          }}
-          onPortfolioOpen={() => {
-            setContactOpen(false);
-            setPortfolioOpen(true);
-          }}
-        />
-        <AboutMeOverlay
-          isOpen={aboutOpen}
-          onClose={() => setAboutOpen(false)}
-          onPortfolioOpen={() => {
-            setAboutOpen(false);
-            setPortfolioOpen(true);
-          }}
-          onContactOpen={() => {
-            setAboutOpen(false);
-            setContactOpen(true);
-          }}
-        />
+        {/* PORTFOLIO OVERLAY - SWITCHER */}
+{portfolioOpen && (
+  isMobile ? (
+    <PortfolioOverlayMobile
+      isOpen={portfolioOpen}
+      onClose={() => setPortfolioOpen(false)}
+      onAboutOpen={() => {
+        setPortfolioOpen(false);
+        setAboutOpen(true);
+      }}
+      onContactOpen={() => {
+        setPortfolioOpen(false);
+        setContactOpen(true);
+      }}
+    />
+  ) : (
+    <PortfolioOverlay
+      isOpen={portfolioOpen}
+      onClose={() => setPortfolioOpen(false)}
+      onAboutOpen={() => {
+        setPortfolioOpen(false);
+        setAboutOpen(true);
+      }}
+      onContactOpen={() => {
+        setPortfolioOpen(false);
+        setContactOpen(true);
+      }}
+    />
+  )
+)}
+        {/* CONTACT OVERLAY - SWITCHER */}
+{contactOpen && (
+  isMobile ? (
+    <ContactOverlayMobile
+      isOpen={contactOpen}
+      onClose={() => setContactOpen(false)}
+      onAboutOpen={() => {
+        setContactOpen(false);
+        setAboutOpen(true);
+      }}
+      onPortfolioOpen={() => {
+        setContactOpen(false);
+        setPortfolioOpen(true);
+      }}
+    />
+  ) : (
+    <ContactOverlay
+      isOpen={contactOpen}
+      onClose={() => setContactOpen(false)}
+      onAboutOpen={() => {
+        setContactOpen(false);
+        setAboutOpen(true);
+      }}
+      onPortfolioOpen={() => {
+        setContactOpen(false);
+        setPortfolioOpen(true);
+      }}
+    />
+  )
+)}
+        {/* TYLKO JEŚLI aboutOpen JEST TRUE, sprawdzamy czy to mobile czy desktop */}
+        {aboutOpen && (
+          isMobile ? (
+            <AboutMeOverlayMobile
+              isOpen={aboutOpen}
+              onClose={() => setAboutOpen(false)}
+              onPortfolioOpen={() => {
+                setAboutOpen(false);
+                setPortfolioOpen(true);
+              }}
+              onContactOpen={() => {
+                setAboutOpen(false);
+                setContactOpen(true);
+              }}
+            />
+          ) : (
+            <AboutMeOverlay
+              isOpen={aboutOpen}
+              onClose={() => setAboutOpen(false)}
+              onPortfolioOpen={() => {
+                setAboutOpen(false);
+                setPortfolioOpen(true);
+              }}
+              onContactOpen={() => {
+                setAboutOpen(false);
+                setContactOpen(true);
+              }}
+            />
+          )
+        )}
 
-        {/* SEKCJE */}
-        {/* NOWY KOMPONENT SZCZEGÓŁÓW FILMU */}
-        <FilmDetailOverlay 
-          isOpen={filmDetailOpen} 
-          onClose={() => {
-            setFilmDetailOpen(false);
-            setSelectedFilmSlug(null);
-          }} 
-          // TE DWIE LINIE SĄ KLUCZOWE DLA MENU:
-          onPortfolioOpen={() => { setFilmDetailOpen(false); setPortfolioOpen(true); }}
-          onContactOpen={() => { setFilmDetailOpen(false); setContactOpen(true); }}
-          
-          slug={selectedFilmSlug} 
-          onFilmChange={(newSlug) => setSelectedFilmSlug(newSlug)}
-        />
+        {/* FILM DETAIL OVERLAY - SWITCHER */}
+{filmDetailOpen && (
+  isMobile ? (
+    <FilmDetailOverlayMobile 
+      isOpen={filmDetailOpen} 
+      onClose={() => {
+        setFilmDetailOpen(false);
+        setSelectedFilmSlug(null);
+      }} 
+      onPortfolioOpen={() => { setFilmDetailOpen(false); setPortfolioOpen(true); }}
+      onContactOpen={() => { setFilmDetailOpen(false); setContactOpen(true); }}
+      slug={selectedFilmSlug} 
+      onFilmChange={(newSlug) => setSelectedFilmSlug(newSlug)}
+    />
+  ) : (
+    <FilmDetailOverlay 
+      isOpen={filmDetailOpen} 
+      onClose={() => {
+        setFilmDetailOpen(false);
+        setSelectedFilmSlug(null);
+      }} 
+      onPortfolioOpen={() => { setFilmDetailOpen(false); setPortfolioOpen(true); }}
+      onContactOpen={() => { setFilmDetailOpen(false); setContactOpen(true); }}
+      slug={selectedFilmSlug} 
+      onFilmChange={(newSlug) => setSelectedFilmSlug(newSlug)}
+    />
+  )
+)}
 
         
 

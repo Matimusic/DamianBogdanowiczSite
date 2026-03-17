@@ -2,6 +2,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { TextReveal } from "@/hooks/useTextReveal";
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface MenuOverlayProps {
   isOpen: boolean;
@@ -12,7 +13,8 @@ interface MenuOverlayProps {
 }
 
 export default function MenuOverlay({ isOpen, onClose, onPortfolioOpen, onContactOpen, onAboutOpen }: MenuOverlayProps) {
-  // Wszystkie linki na środku
+  const isMobile = useIsMobile();
+
   const allMenuItems = [
     { label: "STRONA GŁÓWNA", action: () => onClose() },
     { label: "O MNIE", action: onAboutOpen },
@@ -27,12 +29,12 @@ export default function MenuOverlay({ isOpen, onClose, onPortfolioOpen, onContac
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
+          transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
           style={{
             position: "fixed",
             inset: 0,
             zIndex: 450,
-            background: "rgba(0, 0, 0, 0.75)",
+            background: "rgba(0, 0, 0, 0.95)", // Głębsza czerń
             backdropFilter: "blur(25px)",
             display: "flex",
             flexDirection: "column",
@@ -41,118 +43,149 @@ export default function MenuOverlay({ isOpen, onClose, onPortfolioOpen, onContac
             color: "#e8e4df",
           }}
         >
-          {/* PRZYCISK ZAMKNIĘCIA (✕) */}
+          {/* PRZYCISK ZAMKNIĘCIA - Obniżony do 38px dla idealnego wyrównania */}
           <button 
             onClick={() => onClose()}
             style={{
               position: "absolute",
-              top: "40px",
-              right: "clamp(20px, 5vw, 60px)",
+              top: isMobile ? "38px" : "40px", 
+              right: isMobile ? "24px" : "clamp(20px, 5vw, 60px)",
+              width: "32px",
+              height: "32px",
               background: "none",
               border: "none",
-              color: "#e8e4df",
               cursor: "pointer",
-              fontFamily: "HelveticaCustom",
-              fontSize: "36px",
-              letterSpacing: "4px",
-              zIndex: 500
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "4px",
+              padding: 0,
+              zIndex: 500,
+              mixBlendMode: "difference",
             }}
           >
-            ✕
+            <span style={{ 
+              display: "block", 
+              width: "18px", 
+              height: "1px", 
+              background: "#fff", 
+              transform: "translateY(2.5px) rotate(45deg)",
+            }} />
+            <span style={{ 
+              display: "block", 
+              width: "18px", 
+              height: "1px", 
+              background: "#fff", 
+              transform: "translateY(-2.5px) rotate(-45deg)",
+            }} />
           </button>
 
-          {/* GŁÓWNE MENU NA ŚRODKU */}
-          <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: "5px" }}>
+          {/* GŁÓWNE MENU */}
+          <div style={{ 
+            textAlign: "center", 
+            display: "flex", 
+            flexDirection: "column", 
+            gap: isMobile ? "2px" : "0px", 
+            width: "100%",
+          }}>
             {allMenuItems.map((item, index) => (
-              <MenuButton key={item.label} item={item} index={index} />
+              <MenuButton key={item.label} item={item} index={index} isMobile={isMobile} />
             ))}
           </div>
 
-          {/* STOPKA Z LOGO */}
+          {/* STOPKA - 100% Widoczność */}
           <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: 1.0, duration: 0.8 }} 
-            style={{ position: "absolute", bottom: "40px", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            style={{ 
+              position: "absolute", 
+              bottom: isMobile ? "30px" : "40px", 
+              display: "flex", 
+              flexDirection: "column", 
+              alignItems: "center", 
+              gap: "8px" 
+            }}
           >
-            <p style={{ fontFamily: "HelveticaCustom", fontSize: "10px", letterSpacing: "2px", opacity: 0.5, textTransform: "uppercase" }}>
+            <p style={{ 
+              fontFamily: "HelveticaCustom", 
+              fontSize: "6px", 
+              letterSpacing: "0.5", 
+              opacity: 0.5, 
+              textTransform: "uppercase",
+              color: "#e8e4df"
+            }}>
               Strona zaprojektowana przez
             </p>
             <a href="https://www.whiteslope.studio/" target="_blank" rel="noopener noreferrer">
-              <motion.img 
+              <img 
                 src="/logos/whiteslopeStudioLogo.png" 
-                alt="Whiteslope Studio" 
-                style={{ height: "25px", width: "auto" }} 
-                whileHover={{ opacity: 0.7 }}
+                alt="Logo" 
+                style={{ height: "16px", opacity: 1 }} 
               />
             </a>
           </motion.div>
-
         </motion.div>
       )}
     </AnimatePresence>
   );
 }
 
-// Komponent przycisku — TU JEST SZYBKA ANIMACJA
-function MenuButton({ item, index }: { item: any; index: number }) {
+function MenuButton({ item, index, isMobile }: { item: any; index: number; isMobile: boolean }) {
   const [isHovered, setIsHovered] = useState(false);
+
+  const dynamicFontSize = isMobile ? "24px" : "clamp(40px, 6vw, 55px)";
 
   return (
     <motion.button
       onClick={() => item.action()}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => !isMobile && setIsHovered(true)}
+      onMouseLeave={() => !isMobile && setIsHovered(false)}
       style={{
         background: "none",
         border: "none",
         color: "#e8e4df",
         cursor: "pointer",
-        padding: "5px 40px", 
+        padding: "6px 20px",
         position: "relative",
         display: "grid",
         placeItems: "center",
+        width: "100%",
         outline: "none"
       }}
     >
-      {/* Helvetica (Baza) */}
+      {/* Helvetica */}
       <motion.div
         animate={{ 
           opacity: isHovered ? 0 : 1,
-          filter: isHovered ? "blur(3px)" : "blur(0px)",
-          y: isHovered ? -5 : 0
+          y: isHovered ? -2 : 0,
         }}
-        transition={{ duration: 0.15, ease: "easeOut" }} // Skrócony czas
+        transition={{ duration: 0.2 }}
         style={{
           gridArea: "1/1",
           fontFamily: "HelveticaCustom, sans-serif",
-          fontSize: "clamp(35px, 7vw, 65px)",
-          letterSpacing: "6px",
-          whiteSpace: "nowrap",
+          fontSize: dynamicFontSize,
+          letterSpacing: isMobile ? "1px" : "4px",
           textTransform: "uppercase"
         }}
       >
-        <TextReveal text={item.label} delay={0.2 + index * 0.1} />
+        <TextReveal text={item.label} delay={0.1 + index * 0.05} />
       </motion.div>
 
-      {/* Garamond (Hover) */}
+      {/* Garamond (Tylko na Desktop Hover) */}
       <motion.div
-        initial={{ opacity: 0, y: 5 }}
+        initial={{ opacity: 0 }}
         animate={{ 
           opacity: isHovered ? 1 : 0,
-          scale: isHovered ? 1.05 : 1, 
-          filter: isHovered ? "blur(0px)" : "blur(3px)",
-          y: isHovered ? 0 : 5
+          y: isHovered ? 0 : 2,
         }}
-        transition={{ duration: 0.15, ease: "easeOut" }} // Skrócony czas
+        transition={{ duration: 0.2 }}
         style={{
           gridArea: "1/1",
           fontFamily: "'AppleGaramond', serif",
           fontStyle: "italic",
-          fontSize: "clamp(35px, 7vw, 65px)",
-          letterSpacing: "4px",
-          whiteSpace: "nowrap",
-          pointerEvents: "none",
+          fontSize: dynamicFontSize,
+          letterSpacing: "1px",
           color: "#fff2e5"
         }}
       >

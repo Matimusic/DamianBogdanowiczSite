@@ -10,15 +10,19 @@ interface ContactOverlayProps {
   onPortfolioOpen: () => void;
 }
 
-export default function ContactOverlay({ isOpen, onClose, onAboutOpen, onPortfolioOpen }: ContactOverlayProps) {
+export default function ContactOverlay({
+  isOpen,
+  onClose,
+  onAboutOpen,
+  onPortfolioOpen,
+}: ContactOverlayProps) {
   const [showToast, setShowToast] = useState(false);
 
-  // Funkcja kopiowania do schowka
   const copyToClipboard = (text: string, e: React.MouseEvent) => {
-    e.preventDefault(); // Zapobiegamy natychmiastowemu otwarciu klienta mail/tel
+    e.preventDefault();
     navigator.clipboard.writeText(text).then(() => {
       setShowToast(true);
-      setTimeout(() => setShowToast(false), 2500); // Popup zniknie po 2.5s
+      setTimeout(() => setShowToast(false), 2000);
     });
   };
 
@@ -29,163 +33,207 @@ export default function ContactOverlay({ isOpen, onClose, onAboutOpen, onPortfol
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
+          transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
           style={{
             position: "fixed",
             inset: 0,
             zIndex: 450,
-            background: "rgba(0, 0, 0, 1)",
+            background: "rgba(5, 5, 5, 0.8)", // Przezroczystość 0.8
             backdropFilter: "blur(25px)",
+            color: "#e8e4df",
+            overflow: "hidden",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            color: "#e8e4df",
           }}
         >
-          {/* PRZYCISK ZAMKNIĘCIA */}
-          <button 
-            onClick={onClose}
+          {/* GÓRNA BELKA DESKTOP */}
+          <div
             style={{
               position: "absolute",
               top: "40px",
-              right: "clamp(20px, 5vw, 60px)",
-              background: "none",
-              border: "none",
-              color: "#e8e4df",
-              cursor: "pointer",
-              fontFamily: "HelveticaCustom",
-              fontSize: "36px",
-              letterSpacing: "4px"
+              left: 0,
+              right: 0,
+              padding: "0 clamp(32px, 6vw, 80px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              zIndex: 500,
             }}
           >
-            ✕
-          </button>
-
-          {/* GÓRNA NAWIGACJA */}
-<div style={{
-  position: "absolute",
-  top: "100px",
-  left: "clamp(20px, 5vw, 60px)",
-  display: "flex",
-  gap: "30px",
-  fontFamily: "HelveticaCustom",
-  fontSize: "14px",
-  letterSpacing: "2px"
-}}>
-  {/* 1. STRONA GŁÓWNA */}
-  <button 
-    onClick={onClose} 
-    style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", opacity: 0.6, padding: 0 }}
-  >
-    STRONA GŁÓWNA
-  </button>
-
-  {/* 2. O MNIE */}
-  <button 
-    onClick={onAboutOpen} 
-    style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", opacity: 0.6, padding: 0 }}
-  >
-    O MNIE
-  </button>
-
-  {/* 3. PORTFOLIO */}
-  <button 
-    onClick={onPortfolioOpen} 
-    style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", opacity: 0.6, padding: 0 }}
-  >
-    PORTFOLIO
-  </button>
-</div>
-
-          <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: "10px" }}>
-            <div style={{ marginBottom: "40px" }}>
-              <motion.div style={{ fontFamily: "HelveticaCustom, sans-serif", fontSize: "clamp(40px, 8vw, 80px)", letterSpacing: "15px", fontWeight: "normal", textTransform: "uppercase", lineHeight: 1 }}>
-                <TextReveal text="KONTAKT" delay={0.2} />
-              </motion.div>
+            {/* Nawigacja Lewa */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "32px",
+                fontFamily: "HelveticaCustom",
+                fontSize: "13px",
+                fontWeight: 400,
+                letterSpacing: "1.2px",
+                textTransform: "uppercase",
+                opacity: 0.7,
+              }}
+            >
+              <button onClick={onClose} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0 }}>STRONA GŁÓWNA</button>
+              <button onClick={onAboutOpen} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0 }}>O MNIE</button>
+              <button onClick={onPortfolioOpen} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0 }}>PORTFOLIO</button>
             </div>
 
-            <motion.div style={{ fontFamily: "'AppleGaramond', serif", fontStyle: "italic", fontSize: "clamp(24px, 4vw, 36px)", letterSpacing: "1px", marginBottom: "10px" }}>
+            {/* Przycisk Zamknięcia (X) – Idealnie w linii z Menu/Headerem */}
+            <button
+              onClick={onClose}
+              style={{
+                width: "32px",
+                height: "32px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "4px",
+                padding: 0,
+                mixBlendMode: "difference",
+              }}
+            >
+              <span style={{ display: "block", width: "18px", height: "1px", background: "#fff", transform: "translateY(2.5px) rotate(45deg)" }} />
+              <span style={{ display: "block", width: "18px", height: "1px", background: "#fff", transform: "translateY(-2.5px) rotate(-45deg)" }} />
+            </button>
+          </div>
+
+          {/* TREŚĆ GŁÓWNA */}
+          <div
+            style={{
+              textAlign: "center",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0 10vw",
+            }}
+          >
+            <motion.div
+              style={{
+                fontFamily: "HelveticaCustom, sans-serif",
+                fontSize: "clamp(50px, 9vw, 96px)",
+                letterSpacing: "12px",
+                textTransform: "uppercase",
+                lineHeight: 1,
+                marginBottom: "60px",
+              }}
+            >
+              <TextReveal text="KONTAKT" delay={0.2} />
+            </motion.div>
+
+            <motion.div
+              style={{
+                fontFamily: "'AppleGaramond', serif",
+                fontStyle: "italic",
+                fontSize: "clamp(28px, 4.5vw, 44px)",
+                letterSpacing: "0.8px",
+                marginBottom: "24px",
+              }}
+            >
               <TextReveal text="Damian Bogdanowicz" delay={0.4} />
             </motion.div>
 
-            {/* EMAIL */}
             <motion.a
-              href="mailto:damian.bogdanowicz@gmail.com" 
+              href="mailto:damian.bogdanowicz@gmail.com"
               onClick={(e) => copyToClipboard("damian.bogdanowicz@gmail.com", e)}
-              style={{ fontFamily: "HelveticaCustom, sans-serif", fontSize: "clamp(16px, 2.5vw, 22px)", letterSpacing: "4px", textDecoration: "none", color: "inherit", opacity: 0.8, display: "block", marginBottom: "5px", cursor: "pointer" }}
+              style={{
+                fontFamily: "HelveticaCustom, sans-serif",
+                fontSize: "clamp(18px, 2.8vw, 26px)",
+                letterSpacing: "2.2px",
+                textDecoration: "none",
+                color: "inherit",
+                opacity: 0.75,
+                marginBottom: "12px",
+                display: "block",
+                cursor: "pointer",
+              }}
               whileHover={{ opacity: 1 }}
             >
               <TextReveal text="damian.bogdanowicz@gmail.com" delay={0.6} />
             </motion.a>
 
-            {/* TELEFON */}
             <motion.a
-              href="tel:+48000000000" 
+              href="tel:+48000000000"
               onClick={(e) => copyToClipboard("+48 000 000 000", e)}
-              style={{ fontFamily: "HelveticaCustom, sans-serif", fontSize: "clamp(16px, 2.5vw, 22px)", letterSpacing: "4px", textDecoration: "none", color: "inherit", opacity: 0.8, display: "block", cursor: "pointer" }}
+              style={{
+                fontFamily: "HelveticaCustom, sans-serif",
+                fontSize: "clamp(18px, 2.8vw, 26px)",
+                letterSpacing: "2.2px",
+                textDecoration: "none",
+                color: "inherit",
+                opacity: 0.75,
+                display: "block",
+                cursor: "pointer",
+              }}
               whileHover={{ opacity: 1 }}
             >
-              <TextReveal text="+48 000 000 000" delay={0.8} />
+              <TextReveal text="+48 000 000 000" delay={0.75} />
             </motion.a>
           </div>
 
-          {/* STOPKA Z LOGO */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2, duration: 0.8 }} style={{ position: "absolute", bottom: "40px", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
-            <p style={{ fontFamily: "HelveticaCustom", fontSize: "10px", letterSpacing: "2px", opacity: 0.5, textTransform: "uppercase" }}>Strona zaprojektowana przez</p>
+          {/* STOPKA */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            style={{
+              position: "absolute",
+              bottom: "40px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
+            <p style={{ fontFamily: "HelveticaCustom", fontSize: "10px", letterSpacing: "2px", opacity: 0.5, textTransform: "uppercase", margin: 0 }}>
+              Strona zaprojektowana przez
+            </p>
             <a href="https://www.whiteslope.studio/" target="_blank" rel="noopener noreferrer">
               <img src="/logos/whiteslopeStudioLogo.png" alt="Whiteslope Studio" style={{ height: "25px", width: "auto" }} />
             </a>
           </motion.div>
 
-          {/* --- POPUP (TOAST) --- */}
+          {/* TOAST – Wyśrodkowany Checkmark */}
           <AnimatePresence>
             {showToast && (
               <motion.div
-                initial={{ y: 100, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 100, opacity: 0 }}
-                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                initial={{ y: 20, x: "-50%", opacity: 0, filter: "blur(5px)" }}
+                animate={{ y: 0, x: "-50%", opacity: 1, filter: "blur(0px)" }}
+                exit={{ y: 20, x: "-50%", opacity: 0, filter: "blur(3px)" }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
                 style={{
-                  position: "absolute",
+                  position: "fixed",
+                  left: "50%",
                   bottom: "15vh",
+                  zIndex: 1000,
                   background: "#111",
-                  border: "1px solid rgba(232, 228, 223, 0.1)",
-                  padding: "12px 24px",
-                  borderRadius: "50px",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  padding: "10px 20px",
+                  borderRadius: "999px",
                   display: "flex",
                   alignItems: "center",
-                  gap: "12px",
+                  gap: "8px",
                   boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
-                  zIndex: 500
                 }}
               >
-                {/* ZIELONY CHECKMARK */}
-                <div style={{
-                  width: "18px",
-                  height: "18px",
-                  background: "#4ade80",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}>
-                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 4.5L3.5 7L9 1.5" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <div style={{ width: "12px", height: "10px", display: "flex", alignItems: "center" }}>
+                  <svg viewBox="0 0 10 8" fill="none">
+                    <path d="M1 4.5L3.5 7L9 1.5" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <span style={{ 
-                  fontFamily: "HelveticaCustom", 
-                  fontSize: "12px", 
-                  letterSpacing: "1px", 
-                  color: "#e8e4df" 
-                }}>
-                  Zapisano do schowka
+                <span style={{ fontFamily: "HelveticaCustom", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", color: "#f2ede6" }}>
+                  Zapisano w schowku
                 </span>
               </motion.div>
             )}
           </AnimatePresence>
-
         </motion.div>
       )}
     </AnimatePresence>
