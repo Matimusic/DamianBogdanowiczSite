@@ -88,63 +88,79 @@ export default function Footer({ onPortfolioOpen, onContactOpen, onAboutClick }:
           </nav>
         </div>
 
-        {/* BOTTOM: SOCIALS + COPYRIGHT (NA GÓRZE DOLNEJ BELKI) */}
-        <div style={{ width: "100%", marginTop: "auto" }}>
-          
-          <div style={{ 
-            display: "flex", 
-            flexDirection: isMobile ? "column" : "row",
-            justifyContent: "space-between",
-            alignItems: isMobile ? "flex-start" : "flex-end",
-            gap: isMobile ? "20px" : "0",
-            paddingBottom: "40px",
-            borderBottom: "1px solid rgba(255,255,255,0.2)"
-          }}>
-            {/* SOCIAL MEDIA */}
-            <div style={{ display: "flex", gap: isMobile ? "20px" : "40px" }}>
-              <a href="https://www.instagram.com/damian_bogdanowicz/" target="_blank" style={{ display: "flex", alignItems: "center", gap: "8px", color: "white", textDecoration: "none", fontFamily: "HelveticaCustom", fontWeight: "300" }}>
-                <Instagram size={isMobile ? 16 : "2vh"} strokeWidth={1.5} />
-                <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
-                  <span style={{ fontSize: isMobile ? "1.8vh" : "1.8vh", letterSpacing: "3px" }}>INSTAGRAM</span>
-                  <span style={{ fontSize: isMobile ? "1.2vh" : "1.3vh", opacity: 0.4, letterSpacing: "1px" }}>damian_bogdanowicz</span>
-                </div>
-              </a>
-              <a href="https://www.youtube.com/@DamianBogdanowicz" target="_blank" style={{ display: "flex", alignItems: "center", gap: "8px", color: "white", textDecoration: "none", fontFamily: "HelveticaCustom", fontWeight: "300" }}>
-                <Youtube size={isMobile ? 16 : "2vh"} strokeWidth={1.5} />
-                <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
-                  <span style={{ fontSize: isMobile ? "1.8vh" : "1.8vh", letterSpacing: "3px" }}>YOUTUBE</span>
-                  <span style={{ fontSize: isMobile ? "1.2vh" : "1.3vh", opacity: 0.4, letterSpacing: "1px" }}>@damianbogdanowicz</span>
-                </div>
-              </a>
-            </div>
-
-            {/* COPYRIGHT */}
-            <p style={{ fontFamily: "HelveticaCustom", fontSize: isMobile ? "8px" : "1.2vh", fontWeight: "300", letterSpacing: "1px", margin: 0, opacity: 0.6 }}>
-              © 2026 DAMIAN BOGDANOWICZ.
-            </p>
-          </div>
-
-          {/* WHITESLOPE NANO - IDEALNIE NA ŚRODKU POD LINIĄ */}
-          <div style={{ 
-            marginTop: "40px", 
-            display: "flex", 
-            flexDirection: "column", 
-            alignItems: "center", 
-            gap: "10px" 
-          }}>
-            <p style={{ fontFamily: "HelveticaCustom", fontSize: isMobile ? "6px" : "0.8vh", letterSpacing: "1.5px", opacity: 0.4, textTransform: "uppercase", margin: 0 }}>
-              Strona zaprojektowana przez
-            </p>
-            <a href="https://www.whiteslope.studio/" target="_blank">
-              <motion.img 
-                src="/logos/whiteslopeStudioLogo.png" 
-                alt="Logo" 
-                style={{ height: isMobile ? "14px" : "2.2vh", filter: "brightness(0) invert(1)" }} 
-                whileHover={{ scale: 1.05 }}
-              />
-            </a>
-          </div>
+        {/* BOTTOM: SOCIALS + COPYRIGHT */}
+<div style={{ width: "100%", marginTop: "auto" }}>
+  
+  <div style={{ 
+    display: "flex", 
+    flexDirection: isMobile ? "column" : "row",
+    justifyContent: "space-between",
+    alignItems: isMobile ? "flex-start" : "flex-end",
+    gap: isMobile ? "30px" : "0", // Zwiększony odstęp na mobile między socjalami a copyrightem
+    paddingBottom: "40px",
+    borderBottom: "1px solid rgba(255,255,255,0.2)"
+  }}>
+    
+    {/* SOCIAL MEDIA - TU BYŁ PROBLEM */}
+    <div style={{ 
+      display: "flex", 
+      flexDirection: isMobile ? "column" : "row", // Zmiana na kolumnę na mobile
+      gap: isMobile ? "16px" : "40px", 
+      width: isMobile ? "100%" : "auto"
+    }}>
+      {/* INSTAGRAM */}
+      <a href="https://www.instagram.com/damian_bogdanowicz/" target="_blank" style={{ display: "flex", alignItems: "center", gap: "12px", color: "white", textDecoration: "none", fontFamily: "HelveticaCustom", fontWeight: "300" }}>
+        <Instagram size={isMobile ? 20 : "2vh"} strokeWidth={1.5} />
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "baseline", gap: isMobile ? "2px" : "8px" }}>
+          <span style={{ fontSize: isMobile ? "1.6vh" : "1.8vh", letterSpacing: "3px" }}>INSTAGRAM</span>
+          <span style={{ fontSize: isMobile ? "1.2vh" : "1.3vh", opacity: 0.4, letterSpacing: "1px" }}>damian_bogdanowicz</span>
         </div>
+      </a>
+
+      {/* YOUTUBE */}
+      <a href="https://www.youtube.com/@DamianBogdanowicz" target="_blank" style={{ display: "flex", alignItems: "center", gap: "12px", color: "white", textDecoration: "none", fontFamily: "HelveticaCustom", fontWeight: "300" }}>
+        <Youtube size={isMobile ? 20 : "2vh"} strokeWidth={1.5} />
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "baseline", gap: isMobile ? "2px" : "8px" }}>
+          <span style={{ fontSize: isMobile ? "1.6vh" : "1.8vh", letterSpacing: "3px" }}>YOUTUBE</span>
+          <span style={{ fontSize: isMobile ? "1.2vh" : "1.3vh", opacity: 0.4, letterSpacing: "1px" }}>@damianbogdanowicz</span>
+        </div>
+      </a>
+    </div>
+
+    {/* COPYRIGHT */}
+    <p style={{ 
+      fontFamily: "HelveticaCustom", 
+      fontSize: isMobile ? "10px" : "1.2vh", 
+      fontWeight: "300", 
+      letterSpacing: "1px", 
+      margin: 0, 
+      opacity: 0.6 
+    }}>
+      © 2026 DAMIAN BOGDANOWICZ.
+    </p>
+  </div>
+
+  {/* WHITESLOPE NANO - IDEALNIE NA ŚRODKU POD LINIĄ */}
+  <div style={{ 
+    marginTop: "40px", 
+    display: "flex", 
+    flexDirection: "column", 
+    alignItems: "center", 
+    gap: "10px" 
+  }}>
+    <p style={{ fontFamily: "HelveticaCustom", fontSize: isMobile ? "8px" : "0.8vh", letterSpacing: "1.5px", opacity: 0.4, textTransform: "uppercase", margin: 0 }}>
+      Strona zaprojektowana przez
+    </p>
+    <a href="https://www.whiteslope.studio/" target="_blank">
+      <motion.img 
+        src="/logos/whiteslopeStudioLogo.png" 
+        alt="Logo" 
+        style={{ height: isMobile ? "16px" : "2.2vh", filter: "brightness(0) invert(1)" }} 
+        whileHover={{ scale: 1.05 }}
+      />
+    </a>
+  </div>
+</div>
       </div>
     </footer>
   );
