@@ -34,7 +34,7 @@ export default function ContactOverlay({ isOpen, onClose, onAboutOpen, onPortfol
             position: "fixed",
             inset: 0,
             zIndex: 450,
-            background: "rgba(0, 0, 0, 0.75)",
+            background: "rgba(0, 0, 0, 1)",
             backdropFilter: "blur(25px)",
             display: "flex",
             flexDirection: "column",
