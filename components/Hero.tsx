@@ -17,6 +17,8 @@ const CAPTION_SYNC_DELAY = 220; // Napisy pojawiają się chwilę po starcie kol
 const CAPTION_FADE_IN_DIST = 180;
 const FIRST_CAPTION_INSTANT_VISIBLE_PX = 1;
 const CAPTION_HIDE_DELAY_MS = 3000;
+const IS_PROD = process.env.NODE_ENV === 'production';
+const PREFIX = IS_PROD ? '/DamianBogdanowiczSite' : '';
 
 const easeInOutCubic = (t: number) => {
   if (t < 0.5) return 4 * t * t * t;
@@ -39,28 +41,36 @@ interface HeroProps {
   onFilmClick: (slug: string) => void; // Dodaj to
 }
 
-function ClipItem({ clip, index, scrollYProgress, totalHeight, registerVideoRef, captionsVisible }: ClipItemProps) {
+function ClipItem({ 
+  clip, 
+  index, 
+  scrollYProgress, 
+  totalHeight, 
+  registerVideoRef, 
+  captionsVisible 
+}: ClipItemProps) {
+  
+  // --- 1. OBLICZENIA PUNKTÓW KONTROLNYCH ---
   const startMovePx = index * STEP;
   const shiftedStartMovePx = index === 0 ? startMovePx : Math.max(startMovePx - ENTRY_ADVANCE, 0);
   const endMovePx = shiftedStartMovePx + MOVE;
   const endRestPx = (index + 1) * STEP;
 
-  // Punkty kontrolne dla wyłaniania (Fade In)
   const fadeInStartPx = startMovePx;
   const fadeInEndPx = startMovePx + FADE_IN_DIST;
-
-  // Punkty kontrolne dla wygaszania (Fade Out)
   const fadeOutStartPx = endRestPx - FADE_OUT_DIST;
 
+  // Konwersja na wartości 0-1 dla Framer Motion
   const startMove = shiftedStartMovePx / totalHeight;
   const endMove = endMovePx / totalHeight;
   const endRest = endRestPx / totalHeight;
-  
   const fadeInStart = fadeInStartPx / totalHeight;
   const fadeInEnd = fadeInEndPx / totalHeight;
   const fadeOutStart = fadeOutStartPx / totalHeight;
 
-  // 1. Ruch pionowy
+  // --- 2. ANIMACJE (useTransform) ---
+  
+  // Ruch w pionie
   const y = useTransform(
     scrollYProgress,
     [startMove, endMove, endRest],
@@ -68,7 +78,7 @@ function ClipItem({ clip, index, scrollYProgress, totalHeight, registerVideoRef,
     { ease: [easeInOutCubic, linear] }
   );
 
-  // 2. Skala (subtelny oddech filmu)
+  // Skala filmu
   const videoScale = useTransform(
     scrollYProgress,
     [startMove, endMove, endRest],
@@ -76,7 +86,7 @@ function ClipItem({ clip, index, scrollYProgress, totalHeight, registerVideoRef,
     { ease: [easeInOutCubic, easeInOutCubic] }
   );
 
-  // 3. WYDŁUŻONY FADE IN (z czerni)
+  // Przezroczystość wejścia (z czerni)
   const fadeInOpacity = useTransform(
     scrollYProgress,
     [fadeInStart, fadeInEnd],
@@ -84,13 +94,17 @@ function ClipItem({ clip, index, scrollYProgress, totalHeight, registerVideoRef,
     { ease: easeInOutCubic }
   );
 
-  // 4. WYDŁUŻONY FADE OUT (do czerni)
+  // Przezroczystość wyjścia (do czerni)
   const fadeOutOpacity = useTransform(
     scrollYProgress,
     [fadeOutStart, endRest],
     [0, 1],
     { ease: easeInOutCubic }
   );
+
+  // --- 3. LOGIKA ŹRÓDŁA WIDEO (Fix pod Safari) ---
+  // Sprawdzamy cache, a jeśli go nie ma, budujemy pełną ścieżkę z PREFIXem
+  const videoSrc = blobUrlCache.get(clip.src) ?? `${PREFIX}${clip.src}`;
 
   return (
     <motion.div
@@ -105,41 +119,47 @@ function ClipItem({ clip, index, scrollYProgress, totalHeight, registerVideoRef,
     >
       <motion.video
         ref={(el) => registerVideoRef(index, el)}
-        loop muted playsInline
+        // Kluczowe dla Safari/Mac:
+        autoPlay
+        loop 
+        muted 
+        playsInline
         preload="auto"
+        // Wkładamy src bezpośrednio do tagu video, nie do <source>
+        src={videoSrc}
         style={{
           width: "100%",
           height: "100%",
           objectFit: "cover",
           scale: videoScale
         }}
-      >
-        <source src={blobUrlCache.get(clip.src) ?? clip.src} type="video/mp4" />
-      </motion.video>
+      />
 
-      {/* Warstwa wjazdu (Fade In z czerni) */}
+      {/* Warstwa Fade In (Czerń na starcie) */}
       <motion.div 
         style={{
           position: "absolute",
           inset: 0,
           background: "#000",
           zIndex: 4,
-          opacity: fadeInOpacity
+          opacity: fadeInOpacity,
+          pointerEvents: "none"
         }}
       />
 
-      {/* Warstwa wyjazdu (Fade Out do czerni) */}
+      {/* Warstwa Fade Out (Czerń na końcu) */}
       <motion.div 
         style={{
           position: "absolute",
           inset: 0,
           background: "#000",
           zIndex: 2,
-          opacity: index === CLIPS.length - 1 ? 0 : fadeOutOpacity
+          opacity: index === CLIPS.length - 1 ? 0 : fadeOutOpacity,
+          pointerEvents: "none"
         }}
       />
       
-      {/* Stały gradient pod napisy */}
+      {/* Gradient pod napisy */}
       <motion.div
         animate={{ opacity: captionsVisible ? 1 : 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
