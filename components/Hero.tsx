@@ -47,10 +47,11 @@ function ClipItem({
   scrollYProgress, 
   totalHeight, 
   registerVideoRef, 
-  captionsVisible 
-}: ClipItemProps) {
+  captionsVisible, 
+  isSafari 
+}: ClipItemProps & { isSafari: boolean }) {
   
-  // --- 1. OBLICZENIA PUNKTÓW KONTROLNYCH ---
+  // --- 1. OBLICZENIA SEKSEWNCJI SCROLLA ---
   const startMovePx = index * STEP;
   const shiftedStartMovePx = index === 0 ? startMovePx : Math.max(startMovePx - ENTRY_ADVANCE, 0);
   const endMovePx = shiftedStartMovePx + MOVE;
@@ -60,7 +61,6 @@ function ClipItem({
   const fadeInEndPx = startMovePx + FADE_IN_DIST;
   const fadeOutStartPx = endRestPx - FADE_OUT_DIST;
 
-  // Konwersja na wartości 0-1 dla Framer Motion
   const startMove = shiftedStartMovePx / totalHeight;
   const endMove = endMovePx / totalHeight;
   const endRest = endRestPx / totalHeight;
@@ -68,9 +68,9 @@ function ClipItem({
   const fadeInEnd = fadeInEndPx / totalHeight;
   const fadeOutStart = fadeOutStartPx / totalHeight;
 
-  // --- 2. ANIMACJE (useTransform) ---
+  // --- 2. ANIMACJE TRANSFORMACJI ---
   
-  // Ruch w pionie
+  // Ruch góra-dół
   const y = useTransform(
     scrollYProgress,
     [startMove, endMove, endRest],
@@ -78,7 +78,7 @@ function ClipItem({
     { ease: [easeInOutCubic, linear] }
   );
 
-  // Skala filmu
+  // Subtelne przybliżenie filmu
   const videoScale = useTransform(
     scrollYProgress,
     [startMove, endMove, endRest],
@@ -86,7 +86,7 @@ function ClipItem({
     { ease: [easeInOutCubic, easeInOutCubic] }
   );
 
-  // Przezroczystość wejścia (z czerni)
+  // Przejścia jasności (Fade)
   const fadeInOpacity = useTransform(
     scrollYProgress,
     [fadeInStart, fadeInEnd],
@@ -94,7 +94,6 @@ function ClipItem({
     { ease: easeInOutCubic }
   );
 
-  // Przezroczystość wyjścia (do czerni)
   const fadeOutOpacity = useTransform(
     scrollYProgress,
     [fadeOutStart, endRest],
@@ -102,9 +101,14 @@ function ClipItem({
     { ease: easeInOutCubic }
   );
 
-  // --- 3. LOGIKA ŹRÓDŁA WIDEO (Fix pod Safari) ---
-  // Sprawdzamy cache, a jeśli go nie ma, budujemy pełną ścieżkę z PREFIXem
-  const videoSrc = blobUrlCache.get(clip.src) ?? `${PREFIX}${clip.src}`;
+  // --- 3. INTELIGENTNA LOGIKA ŹRÓDŁA (R2 vs Lokal) ---
+  const isExternal = clip.src.startsWith('http');
+  
+  // Jeśli link zaczyna się od http (R2), bierze go czystego. 
+  // Jeśli nie, dodaje PREFIX pod GitHub Pages.
+  const videoSrc = isExternal 
+    ? clip.src 
+    : (blobUrlCache.get(clip.src) ?? `${PREFIX}${clip.src}`);
 
   return (
     <motion.div
@@ -119,13 +123,14 @@ function ClipItem({
     >
       <motion.video
         ref={(el) => registerVideoRef(index, el)}
-        // Kluczowe dla Safari/Mac:
-        autoPlay
+        // Jeśli to Safari, opcjonalnie wyłączamy autoPlay, by wymusić interakcję 
+        // lub zostawiamy, licząc na to, że MP4/WebM zadziała.
+        autoPlay={!isSafari} 
         loop 
         muted 
         playsInline
         preload="auto"
-        // Wkładamy src bezpośrednio do tagu video, nie do <source>
+        // Kluczowe: src bezpośrednio w tagu video (Safari lepiej to znosi)
         src={videoSrc}
         style={{
           width: "100%",
@@ -135,7 +140,7 @@ function ClipItem({
         }}
       />
 
-      {/* Warstwa Fade In (Czerń na starcie) */}
+      {/* Warstwa wyłaniania z czerni */}
       <motion.div 
         style={{
           position: "absolute",
@@ -147,7 +152,7 @@ function ClipItem({
         }}
       />
 
-      {/* Warstwa Fade Out (Czerń na końcu) */}
+      {/* Warstwa wygaszania do czerni */}
       <motion.div 
         style={{
           position: "absolute",
@@ -159,7 +164,7 @@ function ClipItem({
         }}
       />
       
-      {/* Gradient pod napisy */}
+      {/* Ciemny gradient na dole pod napisy */}
       <motion.div
         animate={{ opacity: captionsVisible ? 1 : 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
@@ -193,6 +198,14 @@ export default function Hero({ isPortfolioOpen, onFilmClick }: HeroProps) {
   const [bufferedSec, setBufferedSec] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
+  const [isSafari, setIsSafari] = useState(false);
+
+useEffect(() => {
+  // Prosty test na Safari (wykluczając Chrome i Androida)
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isSafariBrowser = userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('android');
+  setIsSafari(isSafariBrowser);
+}, []);
   
   const totalScrollHeight = (CLIPS.length * STEP) + 100;
 
@@ -498,6 +511,7 @@ useEffect(() => {
             totalHeight={totalScrollHeight} 
             registerVideoRef={registerVideoRef}
             captionsVisible={captionsVisible}
+            isSafari={isSafari} // Dodaj to
           />
         ))}
 
