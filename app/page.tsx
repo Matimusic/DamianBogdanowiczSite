@@ -19,6 +19,15 @@ import FilmDetailOverlayMobile from "@/components/FilmDetailOverlayMobile";
 
 const PRELOAD_BATCH_SIZE = 1;
 const VIDEO_FALLBACK_TIMEOUT_MS = 120000;
+const OVERLAY_HISTORY_KEY = "damian:lastOverlay";
+
+type OverlayName = "home" | "portfolio" | "contact" | "about" | "filmDetail";
+
+type OverlayHistoryState = {
+  __damianOverlayNav: true;
+  overlay: string;
+  filmSlug?: string | null;
+};
 
 
 const preloadImage = (src: string) =>
@@ -89,13 +98,55 @@ export default function Home() {
   const [overlayVisible, setOverlayVisible] = useState(true);
   const [selectedFilmSlug, setSelectedFilmSlug] = useState<string | null>(null);
   const [filmDetailOpen, setFilmDetailOpen] = useState(false);
-
-  const openFilmDetail = (slug: string) => {
-    setSelectedFilmSlug(slug);
-    setFilmDetailOpen(true);
-  };
   
   const hasPreloadedRef = useRef(false);
+  const isPopStateNavigationRef = useRef(false);
+
+  const normalizeOverlay = (overlay: string): OverlayName => {
+    if (overlay === "portfolio" || overlay === "contact" || overlay === "about" || overlay === "filmDetail") {
+      return overlay;
+    }
+    return "home";
+  };
+
+  const applyOverlayState = (overlay: OverlayName, filmSlug?: string | null) => {
+    setMenuOpen(false);
+    setPortfolioOpen(overlay === "portfolio");
+    setContactOpen(overlay === "contact");
+    setAboutOpen(overlay === "about");
+    setFilmDetailOpen(overlay === "filmDetail");
+    setSelectedFilmSlug(overlay === "filmDetail" ? filmSlug ?? null : null);
+  };
+
+  const saveLastOverlay = (overlay: OverlayName) => {
+    if (overlay === "home") return;
+    sessionStorage.setItem(OVERLAY_HISTORY_KEY, overlay);
+  };
+
+  const navigateOverlay = (overlay: OverlayName, options?: { push?: boolean; filmSlug?: string | null }) => {
+    const shouldPush = options?.push ?? true;
+    const filmSlug = options?.filmSlug ?? null;
+
+    applyOverlayState(overlay, filmSlug);
+    saveLastOverlay(overlay);
+
+    if (shouldPush && !isPopStateNavigationRef.current) {
+      const nextState: OverlayHistoryState = {
+        __damianOverlayNav: true,
+        overlay,
+        filmSlug,
+      };
+      window.history.pushState(nextState, "");
+    }
+  };
+
+  const openFilmDetail = (slug: string) => {
+    navigateOverlay("filmDetail", { filmSlug: slug });
+  };
+
+  const closeToHome = () => {
+    navigateOverlay("home");
+  };
 
   useEffect(() => {
     if (hasPreloadedRef.current) {
@@ -145,9 +196,46 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const currentState = window.history.state as OverlayHistoryState | null;
+    if (!currentState?.__damianOverlayNav) {
+      const initialState: OverlayHistoryState = {
+        __damianOverlayNav: true,
+        overlay: "home",
+        filmSlug: null,
+      };
+      window.history.replaceState(initialState, "");
+    }
+
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state as OverlayHistoryState | null;
+      isPopStateNavigationRef.current = true;
+
+      if (state?.__damianOverlayNav) {
+        const normalizedOverlay = normalizeOverlay(state.overlay);
+        applyOverlayState(normalizedOverlay, state.filmSlug ?? null);
+        saveLastOverlay(normalizedOverlay);
+      } else {
+        applyOverlayState("home");
+      }
+
+      isPopStateNavigationRef.current = false;
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
   // Zmień to:
 const scrollTo = (id?: string) => { // Dodaliśmy '?'
-  setMenuOpen(false);
+  if (menuOpen) {
+    setMenuOpen(false);
+  }
   
   // Dodaj zabezpieczenie, żeby kod nie szukał elementu 'undefined'
   if (!id) return; 
@@ -176,16 +264,16 @@ const scrollTo = (id?: string) => { // Dodaliśmy '?'
           menuOpen={menuOpen} 
           setMenuOpen={setMenuOpen} 
           scrollTo={scrollTo}
-          onPortfolioOpen={() => { setMenuOpen(false); setPortfolioOpen(true); }}
-          onContactOpen={() => { setMenuOpen(false); setContactOpen(true); }}
+          onPortfolioOpen={() => navigateOverlay("portfolio")}
+          onContactOpen={() => navigateOverlay("contact")}
         />
         
         <MenuOverlay 
           isOpen={menuOpen} 
           onClose={scrollTo}
-          onPortfolioOpen={() => { setMenuOpen(false); setPortfolioOpen(true); }}
-          onContactOpen={() => { setMenuOpen(false); setContactOpen(true); }}
-          onAboutOpen={() => { setMenuOpen(false); setAboutOpen(true); }}
+          onPortfolioOpen={() => navigateOverlay("portfolio")}
+          onContactOpen={() => navigateOverlay("contact")}
+          onAboutOpen={() => navigateOverlay("about")}
         />
 
         
@@ -195,28 +283,16 @@ const scrollTo = (id?: string) => { // Dodaliśmy '?'
   isMobile ? (
     <PortfolioOverlayMobile
       isOpen={portfolioOpen}
-      onClose={() => setPortfolioOpen(false)}
-      onAboutOpen={() => {
-        setPortfolioOpen(false);
-        setAboutOpen(true);
-      }}
-      onContactOpen={() => {
-        setPortfolioOpen(false);
-        setContactOpen(true);
-      }}
+      onClose={closeToHome}
+      onAboutOpen={() => navigateOverlay("about")}
+      onContactOpen={() => navigateOverlay("contact")}
     />
   ) : (
     <PortfolioOverlay
       isOpen={portfolioOpen}
-      onClose={() => setPortfolioOpen(false)}
-      onAboutOpen={() => {
-        setPortfolioOpen(false);
-        setAboutOpen(true);
-      }}
-      onContactOpen={() => {
-        setPortfolioOpen(false);
-        setContactOpen(true);
-      }}
+      onClose={closeToHome}
+      onAboutOpen={() => navigateOverlay("about")}
+      onContactOpen={() => navigateOverlay("contact")}
     />
   )
 )}
@@ -225,28 +301,16 @@ const scrollTo = (id?: string) => { // Dodaliśmy '?'
   isMobile ? (
     <ContactOverlayMobile
       isOpen={contactOpen}
-      onClose={() => setContactOpen(false)}
-      onAboutOpen={() => {
-        setContactOpen(false);
-        setAboutOpen(true);
-      }}
-      onPortfolioOpen={() => {
-        setContactOpen(false);
-        setPortfolioOpen(true);
-      }}
+      onClose={closeToHome}
+      onAboutOpen={() => navigateOverlay("about")}
+      onPortfolioOpen={() => navigateOverlay("portfolio")}
     />
   ) : (
     <ContactOverlay
       isOpen={contactOpen}
-      onClose={() => setContactOpen(false)}
-      onAboutOpen={() => {
-        setContactOpen(false);
-        setAboutOpen(true);
-      }}
-      onPortfolioOpen={() => {
-        setContactOpen(false);
-        setPortfolioOpen(true);
-      }}
+      onClose={closeToHome}
+      onAboutOpen={() => navigateOverlay("about")}
+      onPortfolioOpen={() => navigateOverlay("portfolio")}
     />
   )
 )}
@@ -255,28 +319,16 @@ const scrollTo = (id?: string) => { // Dodaliśmy '?'
           isMobile ? (
             <AboutMeOverlayMobile
               isOpen={aboutOpen}
-              onClose={() => setAboutOpen(false)}
-              onPortfolioOpen={() => {
-                setAboutOpen(false);
-                setPortfolioOpen(true);
-              }}
-              onContactOpen={() => {
-                setAboutOpen(false);
-                setContactOpen(true);
-              }}
+              onClose={closeToHome}
+              onPortfolioOpen={() => navigateOverlay("portfolio")}
+              onContactOpen={() => navigateOverlay("contact")}
             />
           ) : (
             <AboutMeOverlay
               isOpen={aboutOpen}
-              onClose={() => setAboutOpen(false)}
-              onPortfolioOpen={() => {
-                setAboutOpen(false);
-                setPortfolioOpen(true);
-              }}
-              onContactOpen={() => {
-                setAboutOpen(false);
-                setContactOpen(true);
-              }}
+              onClose={closeToHome}
+              onPortfolioOpen={() => navigateOverlay("portfolio")}
+              onContactOpen={() => navigateOverlay("contact")}
             />
           )
         )}
@@ -286,26 +338,20 @@ const scrollTo = (id?: string) => { // Dodaliśmy '?'
   isMobile ? (
     <FilmDetailOverlayMobile 
       isOpen={filmDetailOpen} 
-      onClose={() => {
-        setFilmDetailOpen(false);
-        setSelectedFilmSlug(null);
-      }} 
-      onPortfolioOpen={() => { setFilmDetailOpen(false); setPortfolioOpen(true); }}
-      onContactOpen={() => { setFilmDetailOpen(false); setContactOpen(true); }}
+      onClose={closeToHome} 
+      onPortfolioOpen={() => navigateOverlay("portfolio")}
+      onContactOpen={() => navigateOverlay("contact")}
       slug={selectedFilmSlug} 
-      onFilmChange={(newSlug) => setSelectedFilmSlug(newSlug)}
+      onFilmChange={(newSlug) => navigateOverlay("filmDetail", { filmSlug: newSlug })}
     />
   ) : (
     <FilmDetailOverlay 
       isOpen={filmDetailOpen} 
-      onClose={() => {
-        setFilmDetailOpen(false);
-        setSelectedFilmSlug(null);
-      }} 
-      onPortfolioOpen={() => { setFilmDetailOpen(false); setPortfolioOpen(true); }}
-      onContactOpen={() => { setFilmDetailOpen(false); setContactOpen(true); }}
+      onClose={closeToHome} 
+      onPortfolioOpen={() => navigateOverlay("portfolio")}
+      onContactOpen={() => navigateOverlay("contact")}
       slug={selectedFilmSlug} 
-      onFilmChange={(newSlug) => setSelectedFilmSlug(newSlug)}
+      onFilmChange={(newSlug) => navigateOverlay("filmDetail", { filmSlug: newSlug })}
     />
   )
 )}
@@ -313,9 +359,9 @@ const scrollTo = (id?: string) => { // Dodaliśmy '?'
         
 
         <Footer
-          onPortfolioOpen={() => setPortfolioOpen(true)}
-          onContactOpen={() => setContactOpen(true)}
-          onAboutClick={() => setAboutOpen(true)}
+          onPortfolioOpen={() => navigateOverlay("portfolio")}
+          onContactOpen={() => navigateOverlay("contact")}
+          onAboutClick={() => navigateOverlay("about")}
         />
       </main>
 

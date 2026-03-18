@@ -7,6 +7,7 @@ import { PORTFOLIO_FILMS } from "@/data/portfolioFilms";
 import { useState } from "react";
 import { usePortfolioFilms } from "@/hooks/usePortfolioFilms"; // Importujemy hooka
 import { usePortfolioReels } from "@/hooks/usePortfolioReels"; // Importujemy hooka
+import { useBackToClose } from "@/hooks/useBackToClose";
 
 interface PortfolioOverlayProps {
   isOpen: boolean;
