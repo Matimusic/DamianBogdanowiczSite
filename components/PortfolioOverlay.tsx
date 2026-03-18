@@ -5,6 +5,8 @@ import { useHorizontalScroll } from "@/hooks/useHorizontalScroll";
 import { PORTFOLIO_REELS } from "@/data/portfolioReels";
 import { PORTFOLIO_FILMS } from "@/data/portfolioFilms";
 import { useState } from "react";
+import { usePortfolioFilms } from "@/hooks/usePortfolioFilms"; // Importujemy hooka
+import { usePortfolioReels } from "@/hooks/usePortfolioReels"; // Importujemy hooka
 
 interface PortfolioOverlayProps {
   isOpen: boolean;
@@ -125,6 +127,74 @@ const karuzela_styl: React.CSSProperties = {
   msOverflowStyle: "none",
 };
 
+const SkeletonFilmCard = () => {
+  return (
+    <div style={{ flex: "0 0 600px", userSelect: "none" }}>
+      {/* Miniaturka 16/9 z efektem shine */}
+      <motion.div
+        style={{
+          aspectRatio: "16/9",
+          background: "linear-gradient(90deg, #111 25%, #222 50%, #111 75%)",
+          backgroundSize: "200% 100%",
+          borderRadius: "4px",
+          marginBottom: "20px",
+        }}
+        animate={{
+          backgroundPosition: ["200% 0", "-200% 0"],
+        }}
+        transition={{
+          duration: 1.5,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+      />
+      
+      {/* Pasek tytułu */}
+      <motion.div
+        style={{
+          height: "24px",
+          width: "60%",
+          background: "#111",
+          borderRadius: "4px",
+          marginBottom: "10px",
+        }}
+        animate={{ opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 1.5, repeat: Infinity }}
+      />
+
+      {/* Pasek podtytułu */}
+      <motion.div
+        style={{
+          height: "16px",
+          width: "40%",
+          background: "#111",
+          borderRadius: "4px",
+        }}
+        animate={{ opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+      />
+    </div>
+  );
+};
+
+const SkeletonReelCard = () => (
+  <div style={{ flex: "0 0 280px" }}>
+    <motion.div
+      style={{
+        aspectRatio: "9/16",
+        background: "linear-gradient(90deg, #111 25%, #222 50%, #111 75%)",
+        backgroundSize: "200% 100%",
+        borderRadius: "8px",
+        marginBottom: "15px",
+      }}
+      animate={{ backgroundPosition: ["200% 0", "-200% 0"] }}
+      transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+    />
+    <div style={{ height: "18px", width: "70%", background: "#111", borderRadius: "4px", marginBottom: "8px" }} />
+    <div style={{ height: "14px", width: "40%", background: "#111", borderRadius: "4px" }} />
+  </div>
+);
+
 export default function PortfolioOverlay({ isOpen, onClose, onAboutOpen, onContactOpen }: PortfolioOverlayProps) {
   // 1. Hooki do przewijania (używamy Callback Ref)
   const setRolkiRef = useHorizontalScroll();
@@ -132,6 +202,11 @@ export default function PortfolioOverlay({ isOpen, onClose, onAboutOpen, onConta
 
   // 2. STAN DLA AKTYWNEGO FILMU (Tego brakowało!)
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
+
+  // POBIERAMY DANE Z GOOGLE SHEETS
+  const { films, isLoading } = usePortfolioFilms();
+  // POBIERAMY ROLKI Z GOOGLE SHEETS
+  const { reels, isReelsLoading } = usePortfolioReels();
 
   return (
     <AnimatePresence>
@@ -230,7 +305,14 @@ export default function PortfolioOverlay({ isOpen, onClose, onAboutOpen, onConta
 
             {/* SEKCJA ROLKI */}
             <section style={{ marginBottom: "100px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "30px", borderBottom: "1px solid rgba(232,228,223,0.1)", paddingBottom: "15px" }}>
+              <div style={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "flex-end", 
+                marginBottom: "30px", 
+                borderBottom: "1px solid rgba(232,228,223,0.1)", 
+                paddingBottom: "15px" 
+              }}>
                 <h2 style={{ fontFamily: "HelveticaCustom", fontSize: "14px", letterSpacing: "3px", opacity: 0.6 }}>ROLKI</h2>
                 <div style={{ display: "flex", gap: "20px" }}>
                   {ROLKI_TAGS.map((tag) => (
@@ -240,19 +322,65 @@ export default function PortfolioOverlay({ isOpen, onClose, onAboutOpen, onConta
               </div>
 
               <div ref={setRolkiRef} style={karuzela_styl}>
-                {PORTFOLIO_REELS.map((reel, index) => (
-                  <motion.div 
-                    key={index} 
-                    onClick={() => setActiveVideo(reel.link)}
-                    style={{ flex: "0 0 280px", cursor: "pointer" }}
-                  >
-                    <div style={{ aspectRatio: "9/16", background: "#111", borderRadius: "8px", overflow: "hidden", marginBottom: "15px", position: "relative" }}>
-                      <img src={reel.thumbnail} alt={reel.title} style={{ width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }} />
-                    </div>
-                    <p style={{ fontFamily: "HelveticaCustom", fontWeight: "bold", fontSize: "16px", margin: "0 0 4px", textTransform: "uppercase" }}>{reel.title}</p>
-                    <p style={{ fontFamily: "'AppleGaramond', serif", fontStyle: "italic", fontSize: "13px", opacity: 0.6 }}>{reel.subtitle}</p>
-                  </motion.div>
-                ))}
+                {isReelsLoading ? (
+                  // Wyświetlamy 4 szkielety podczas ładowania
+                  <>
+                    <SkeletonReelCard />
+                    <SkeletonReelCard />
+                    <SkeletonReelCard />
+                    <SkeletonReelCard />
+                    <SkeletonReelCard />
+                    <SkeletonReelCard />
+                    <SkeletonReelCard />
+                  </>
+                ) : (
+                  reels.map((reel, index) => (
+                    <motion.div 
+                      key={index} 
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      onClick={() => setActiveVideo(reel.link)}
+                      style={{ flex: "0 0 280px", cursor: "pointer" }}
+                    >
+                      <div style={{ 
+                        aspectRatio: "9/16", 
+                        background: "#111", 
+                        borderRadius: "8px", 
+                        overflow: "hidden", 
+                        marginBottom: "15px", 
+                        position: "relative" 
+                      }}>
+                        <img 
+                          src={reel.thumbnail} 
+                          alt={reel.title} 
+                          style={{ width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }} 
+                        />
+                        {/* Opcjonalna ikonka play na rolce */}
+                        <div style={{ 
+                          position: "absolute", 
+                          top: "50%", 
+                          left: "50%", 
+                          transform: "translate(-50%, -50%)", 
+                          opacity: 0.5,
+                          fontSize: "24px"
+                        }}>▶</div>
+                      </div>
+                      <p style={{ 
+                        fontFamily: "HelveticaCustom", 
+                        fontWeight: "bold", 
+                        fontSize: "16px", 
+                        margin: "0 0 4px", 
+                        textTransform: "uppercase" 
+                      }}>{reel.title}</p>
+                      <p style={{ 
+                        fontFamily: "'AppleGaramond', serif", 
+                        fontStyle: "italic", 
+                        fontSize: "13px", 
+                        opacity: 0.6 
+                      }}>{reel.subtitle}</p>
+                    </motion.div>
+                  ))
+                )}
               </div>
             </section>
 
@@ -268,20 +396,32 @@ export default function PortfolioOverlay({ isOpen, onClose, onAboutOpen, onConta
               </div>
 
               <div ref={setFilmyRef} style={{ ...karuzela_styl, gap: "40px" }}>
-                {PORTFOLIO_FILMS.map((film) => (
-                  <motion.div
-                    key={film.youtubeUrl}
-                    style={{ flex: "0 0 600px", userSelect: "none" }}
-                    onClick={() => setActiveVideo(film.youtubeUrl)}
-                  >
-                    <div style={{ aspectRatio: "16/9", background: "#111", borderRadius: "4px", overflow: "hidden", marginBottom: "20px", position: "relative" }}>
-                      <img src={film.thumbnailUrl} alt={film.title} style={{ width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }} />
-                      <div style={{ position: "absolute", bottom: "20px", left: "20px", width: "40px", height: "40px", borderRadius: "50%", border: "1px solid white", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>▶</div>
-                    </div>
-                    <p style={{ fontFamily: "HelveticaCustom", fontWeight: "bold", fontSize: "20px", margin: "0 0 5px", textTransform: "uppercase" }}>{film.title}</p>
-                    <p style={{ fontFamily: "'AppleGaramond', serif", fontStyle: "italic", fontSize: "14px", opacity: 0.5 }}>{film.subtitle}</p>
-                  </motion.div>
-                ))}
+                {isLoading ? (
+                  // Renderujemy 3 szkielety zamiast napisu
+                  <>
+                    <SkeletonFilmCard />
+                    <SkeletonFilmCard />
+                    <SkeletonFilmCard />
+                    <SkeletonFilmCard />
+                  </>
+                ) : (
+                  films.map((film, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      style={{ flex: "0 0 600px", userSelect: "none" }}
+                      onClick={() => setActiveVideo(film.youtubeUrl)}
+                    >
+                      <div style={{ aspectRatio: "16/9", background: "#111", borderRadius: "4px", overflow: "hidden", marginBottom: "20px", position: "relative" }}>
+                        <img src={film.thumbnailUrl} alt={film.title} style={{ width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }} />
+                        <div style={{ position: "absolute", bottom: "20px", left: "20px", width: "40px", height: "40px", borderRadius: "50%", border: "1px solid white", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>▶</div>
+                      </div>
+                      <p style={{ fontFamily: "HelveticaCustom", fontWeight: "bold", fontSize: "20px", margin: "0 0 5px", textTransform: "uppercase" }}>{film.title}</p>
+                      <p style={{ fontFamily: "'AppleGaramond', serif", fontStyle: "italic", fontSize: "14px", opacity: 0.5 }}>{film.subtitle}</p>
+                    </motion.div>
+                  ))
+                )}
               </div>
             </section>
 

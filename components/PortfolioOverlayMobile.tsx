@@ -5,6 +5,8 @@ import { useHorizontalScroll } from "@/hooks/useHorizontalScroll";
 import { PORTFOLIO_REELS } from "@/data/portfolioReels";
 import { PORTFOLIO_FILMS } from "@/data/portfolioFilms";
 import { useState } from "react";
+import { usePortfolioFilms } from "@/hooks/usePortfolioFilms";
+import { usePortfolioReels } from "@/hooks/usePortfolioReels";
 
 interface PortfolioOverlayProps {
   isOpen: boolean;
@@ -15,6 +17,24 @@ interface PortfolioOverlayProps {
 
 const ROLKI_TAGS = ["#ALL", "#COMMERCIAL", "#LIFESTYLE"];
 const FILMY_TAGS = ["#NARRATIVE", "#MUSIC_VIDEO"];
+
+const SkeletonMobile = ({ width, aspect }: { width: string, aspect: string }) => (
+  <div style={{ flex: `0 0 ${width}`, userSelect: "none" }}>
+    <motion.div
+      style={{
+        aspectRatio: aspect,
+        background: "linear-gradient(90deg, #111 25%, #222 50%, #111 75%)",
+        backgroundSize: "200% 100%",
+        borderRadius: "4px",
+        marginBottom: "10px",
+      }}
+      animate={{ backgroundPosition: ["200% 0", "-200% 0"] }}
+      transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+    />
+    <div style={{ height: "10px", width: "80%", background: "#111", borderRadius: "2px", marginBottom: "4px" }} />
+    <div style={{ height: "8px", width: "50%", background: "#111", borderRadius: "2px" }} />
+  </div>
+);
 
 // Funkcja pomocnicza do YouTube
 const getEmbedUrl = (url: string) => {
@@ -33,6 +53,10 @@ export default function PortfolioOverlayMobile({ isOpen, onClose, onAboutOpen, o
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const setRolkiRef = useHorizontalScroll();
   const setFilmyRef = useHorizontalScroll();
+
+  // POBIERANIE DANYCH Z GOOGLE SHEETS
+  const { films, isLoading: isFilmsLoading } = usePortfolioFilms();
+  const { reels, isReelsLoading } = usePortfolioReels();
 
   return (
     <motion.div
@@ -110,15 +134,23 @@ export default function PortfolioOverlayMobile({ isOpen, onClose, onAboutOpen, o
         </div>
 
         <div ref={setRolkiRef} style={{ display: "flex", gap: "15px", overflowX: "auto", padding: "0 24px", scrollbarWidth: "none" }}>
-          {PORTFOLIO_REELS.map((reel, index) => (
-            <div key={index} onClick={() => setActiveVideo(reel.link)} style={{ flex: "0 0 160px" }}>
-              <div style={{ aspectRatio: "9/16", background: "#111", borderRadius: "4px", overflow: "hidden", marginBottom: "10px" }}>
-                <img src={reel.thumbnail} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          {isReelsLoading ? (
+            <>
+              <SkeletonMobile width="160px" aspect="9/16" />
+              <SkeletonMobile width="160px" aspect="9/16" />
+              <SkeletonMobile width="160px" aspect="9/16" />
+            </>
+          ) : (
+            reels.map((reel, index) => (
+              <div key={index} onClick={() => setActiveVideo(reel.link)} style={{ flex: "0 0 160px" }}>
+                <div style={{ aspectRatio: "9/16", background: "#111", borderRadius: "4px", overflow: "hidden", marginBottom: "10px" }}>
+                  <img src={reel.thumbnail} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+                <p style={{ fontSize: "10px", fontFamily: "HelveticaCustom", textTransform: "uppercase", marginBottom: "2px" }}>{reel.title}</p>
+                <p style={{ fontSize: "8px", fontFamily: "AppleGaramond", fontStyle: "italic", opacity: 0.5 }}>{reel.subtitle}</p>
               </div>
-              <p style={{ fontSize: "10px", fontFamily: "HelveticaCustom", textTransform: "uppercase", marginBottom: "2px" }}>{reel.title}</p>
-              <p style={{ fontSize: "8px", fontFamily: "AppleGaramond", fontStyle: "italic", opacity: 0.5 }}>{reel.subtitle}</p>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
 
@@ -129,15 +161,23 @@ export default function PortfolioOverlayMobile({ isOpen, onClose, onAboutOpen, o
         </div>
 
         <div ref={setFilmyRef} style={{ display: "flex", gap: "15px", overflowX: "auto", padding: "0 24px", scrollbarWidth: "none" }}>
-          {PORTFOLIO_FILMS.map((film, index) => (
-            <div key={index} onClick={() => setActiveVideo(film.youtubeUrl)} style={{ flex: "0 0 260px" }}>
-              <div style={{ aspectRatio: "16/9", background: "#111", borderRadius: "4px", overflow: "hidden", marginBottom: "10px", position: "relative" }}>
-                <img src={film.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                <div style={{ position: "absolute", bottom: "10px", left: "10px", fontSize: "12px" }}>▶</div>
+          {isFilmsLoading ? (
+            <>
+              <SkeletonMobile width="260px" aspect="16/9" />
+              <SkeletonMobile width="260px" aspect="16/9" />
+            </>
+          ) : (
+            films.map((film, index) => (
+              <div key={index} onClick={() => setActiveVideo(film.youtubeUrl)} style={{ flex: "0 0 260px" }}>
+                <div style={{ aspectRatio: "16/9", background: "#111", borderRadius: "4px", overflow: "hidden", marginBottom: "10px", position: "relative" }}>
+                  <img src={film.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <div style={{ position: "absolute", bottom: "10px", left: "10px", fontSize: "12px" }}>▶</div>
+                </div>
+                <p style={{ fontSize: "10px", fontFamily: "HelveticaCustom", textTransform: "uppercase", marginBottom: "2px" }}>{film.title}</p>
+                <p style={{ fontSize: "8px", fontFamily: "AppleGaramond", fontStyle: "italic", opacity: 0.5 }}>{film.subtitle}</p>
               </div>
-              <p style={{ fontSize: "10px", fontFamily: "HelveticaCustom", textTransform: "uppercase" }}>{film.title}</p>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
 
